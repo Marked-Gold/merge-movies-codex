@@ -1,0 +1,3 @@
+interface:
+  display_name: "Merge Movies"
+  short_description: "Generate code walkthrough videos from git diffs"
