@@ -1,11 +1,11 @@
 ---
-name: merge-movies
-description: Generate code walkthrough movies from git diffs using merge.mov
+name: create-movie
+description: Create code walkthrough movies from git diffs, feature walkthroughs, architecture overviews, setup guides, or free-form narratives using merge.mov
 ---
 
-# Merge Movies
+# Create Movie
 
-Generate code walkthrough movies from git diffs using the merge.mov REST API.
+Create code walkthrough movies using the merge.mov REST API. Supports multiple creation paths beyond git diffs.
 
 ## Setup
 
@@ -20,28 +20,59 @@ curl -s -X <METHOD> "https://merge.mov/api/<path>" \
   -d '<json body>'
 ```
 
+## Creation Paths
+
+Determine the creation mode based on the user's request or conversation context:
+
+| Signal | Mode | Source Material |
+|--------|------|-----------------|
+| Commit range (e.g., `HEAD~3..HEAD`) | Git diff | `git diff` output |
+| `uncommitted` or working tree changes | Git diff | `git diff HEAD` |
+| Branch name | Git diff | `git diff main..<branch>` |
+| "walkthrough", "explain how X works" | Feature walkthrough | Read source files, trace execution flow |
+| "architecture", "system overview" | Architecture overview | Explore codebase structure, explain the system |
+| "setup", "getting started" | Setup guide | Read README, package.json, Dockerfiles, config |
+| General description or free text | Free-form narrative | User describes the story, gather supporting files |
+
 ## Workflow
 
-### 1. Get the Git Diff
+### 1. Gather Source Material
 
+**Git diff modes:**
 ```bash
 git diff --name-status HEAD~3..HEAD   # scope first
 git diff HEAD~3..HEAD                 # full diff
 ```
 
-### 2. Analyze the Changes
+**Feature walkthrough:** Use file search to find relevant source files — entry points, key modules, tests. Read each file to understand the implementation. Map out data/control flow through the feature.
 
-Group changes into logical units by feature, file type, or layer. Plan a narrative: What problem is being solved? How does the solution work?
+**Architecture overview:** Explore directory structure, read entry points (package.json, main.ts, config files), identify layers (routes, services, models, utils), read representative files from each layer.
 
-### 3. Plan Scenes
+**Setup guide:** Read README, CONTRIBUTING, package.json, Dockerfile, docker-compose, config files. Identify prerequisites, install steps, environment variables, build commands.
 
-Create an outline before building. Each scene should focus on one concept. Use a mix of scene types (code, slide, terminal, react) for variety.
+**Free-form:** Ask the user what story they want to tell, gather supporting code and files.
+
+### 2. Analyze and Plan Scenes
+
+Group material into logical units. Plan a narrative arc:
+
+**Git diffs:** Group by feature, file type, or layer. What problem is being solved? How does the solution work?
+
+**Walkthroughs:** Follow execution flow — entry point, core logic, output. Build understanding progressively.
+
+**Architecture:** Start high-level (system diagram), drill into layers, show how components connect.
+
+**Setup:** Follow chronological setup order, show terminal commands alongside config files.
 
 **Duration guidelines:** Simple changes: 3-5s. Complex logic: 8-12s. Architecture overviews: 10-15s.
 
-### 4. Write Narration
+### 3. Write Narration
 
 Explain the "why" not just the "what." Use active voice. Connect to the bigger picture.
+
+### 4. Read Source Files
+
+Always read the actual source file before creating code view scenes. The diff tells you which lines changed; the file gives you the content with proper surrounding context. For non-diff modes, read files to get exact content for the lines you want to show.
 
 ### 5. Create the Movie via API
 
@@ -66,6 +97,8 @@ curl -s -X POST "https://merge.mov/api/movies/$MOVIE_ID/scenes" \
 
 echo "View at: https://studio.merge.mov/movie/$MOVIE_ID"
 ```
+
+For non-diff modes, omit `branch` and `commitRange` from metadata.
 
 ## Scene Types
 
@@ -99,7 +132,7 @@ Display code with syntax highlighting. Always read the source file first to incl
 
 **Layouts:** `single`, `side-by-side`, `stacked`, `inline-diff`
 
-**Change types:** `modify` (existing file changed — most common), `add` (new file), `delete` (removed), `context` (unchanged, for reference)
+**Change types:** `modify` (existing file changed — most common), `add` (new file), `delete` (removed), `context` (unchanged, for reference — use for walkthrough/architecture scenes)
 
 **Animations:**
 - **Scroll:** `"scroll": { "id": "s1", "linesPerSecond": 3, "pauses": [{ "lineNumber": 15, "durationMs": 2000 }] }`
@@ -178,10 +211,11 @@ Types: `cut` (related scenes), `fade` (topic change), `slide` (sequential steps)
 
 ## Tips
 
-1. One PR = one movie — don't cover too much
+1. One topic per movie — don't cover too much
 2. Tell a story — beginning, middle, end
 3. Mix scene types — code, slides, terminal, react
 4. Scroll through long files instead of cramming
 5. Use highlights to draw attention to key lines
 6. Time scroll pauses to narration
 7. Fade between topics, cut between related scenes
+8. For walkthroughs/architecture, use `context` changeType when showing existing code

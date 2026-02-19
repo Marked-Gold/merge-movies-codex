@@ -1,6 +1,6 @@
 # Merge Movies — Codex Skill
 
-Generate code walkthrough movies from git diffs using [merge.mov](https://merge.mov).
+Create and update code walkthrough movies using [merge.mov](https://merge.mov).
 
 ## Install
 
@@ -18,15 +18,27 @@ $skill-installer install https://github.com/Marked-Gold/merge-movies-codex
 export MERGE_MOVIES_API_KEY="mm_your_key_here"
 ```
 
+## Skills
+
+### `create-movie` — Create a new movie
+
+Supports multiple creation paths:
+- **Git diffs** — from commit ranges, uncommitted changes, or branch comparisons
+- **Feature walkthroughs** — explain how a feature works by reading source files
+- **Architecture overviews** — explore and explain the system structure
+- **Setup guides** — document how to set up and run the project
+- **Free-form narratives** — tell any story with code, slides, and animations
+
+### `update-movie` — Modify an existing movie
+
+Find an existing movie by ID or title, then:
+- Add, edit, reorder, or remove scenes
+- Update narration, code blocks, or view types
+- Change metadata (title, description)
+
 ## What It Does
 
-The skill teaches Codex to create code walkthrough videos by:
-1. Parsing git diffs to understand code changes
-2. Planning scenes that tell a story
-3. Writing narration for each scene
-4. Calling the merge.mov REST API to build the movie
-
-Movies can include code views with syntax highlighting, slide views for title cards and diagrams, terminal demos, and custom React animations.
+The skills teach Codex to create and modify code walkthrough videos by calling the merge.mov REST API. Movies can include code views with syntax highlighting, slide views for title cards and diagrams, terminal demos, and custom React animations.
 
 View your movies at [studio.merge.mov](https://studio.merge.mov).
 
