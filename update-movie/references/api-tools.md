@@ -1,58 +1,53 @@
-# merge.mov REST API Reference
+# merge.mov MCP Tools Reference
 
-**Base URL:** `https://merge.mov`
-**Auth:** `X-API-Key: $MERGE_MOVIES_API_KEY` header on all requests
-**Content-Type:** `application/json`
-**Studio:** `https://studio.merge.mov/movie/{movieId}` (viewing URL)
+**MCP Server:** `merge-movies`
+**Transport:** Streamable HTTP
+**URL:** `https://merge.mov/api/mcp`
+**Auth:** `X-API-Key` header via `MERGE_MOVIES_API_KEY` environment variable
+**Studio:** `{MERGE_MOVIES_URL}/studio/{movieId}` (viewing URL, use `$MERGE_MOVIES_URL` or default `https://merge.mov`)
 
 ## Movies
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/movies` | List all movies |
-| POST | `/api/movies` | Create movie |
-| GET | `/api/movies/:id` | Get movie with all scenes |
-| PUT | `/api/movies/:id` | Update full movie |
-| DELETE | `/api/movies/:id` | Delete movie |
+| Tool | Input | Description |
+|------|-------|-------------|
+| `list_movies` | `{}` | List all movies — returns `[{ id, title, updatedAt }]` |
+| `get_movie` | `{ movieId }` | Get movie with all scenes and code blocks |
+| `create_movie` | `{ movie }` | Create movie — returns `{ id, studioUrl }` |
+| `update_movie` | `{ movieId, movie }` | Full replacement of a movie |
+| `delete_movie` | `{ movieId }` | Delete a movie |
 
-**Create movie body:**
+**Movie object:**
 ```json
 {
-  "id": "optional-custom-id",
-  "movie": {
-    "metadata": {
-      "title": "Required title",
-      "description": "Required description",
-      "repository": "optional/repo",
-      "branch": "optional-branch",
-      "commitRange": { "from": "abc123", "to": "def456" }
-    },
-    "scenes": []
-  }
+  "metadata": {
+    "title": "Required title",
+    "description": "Required description",
+    "repository": "optional/repo",
+    "branch": "optional-branch",
+    "commitRange": { "from": "abc123", "to": "def456" }
+  },
+  "scenes": []
 }
 ```
 
-**Response:** `{ "id": "movie-id" }`
-
 ## Scenes
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/movies/:movieId/scenes` | List scenes |
-| POST | `/api/movies/:movieId/scenes` | Create scene |
-| GET | `/api/movies/:movieId/scenes/:sceneId` | Get scene |
-| PATCH | `/api/movies/:movieId/scenes/:sceneId` | Partial update |
-| PUT | `/api/movies/:movieId/scenes/:sceneId` | Full replace |
-| DELETE | `/api/movies/:movieId/scenes/:sceneId` | Delete scene |
-| POST | `/api/movies/:movieId/scenes/reorder` | Reorder scenes |
+| Tool | Input | Description |
+|------|-------|-------------|
+| `list_scenes` | `{ movieId }` | List all scenes in a movie |
+| `get_scene` | `{ movieId, sceneId }` | Get a single scene |
+| `create_scene` | `{ movieId, scene }` | Create a new scene |
+| `update_scene` | `{ movieId, sceneId, scene }` | Full replacement of a scene |
+| `patch_scene` | `{ movieId, sceneId, scene }` | Partial update (only provided fields) |
+| `delete_scene` | `{ movieId, sceneId }` | Delete a scene |
+| `reorder_scenes` | `{ movieId, sceneIds }` | Reorder scenes by ID array |
 
-**Create scene body:**
+**Scene object (for create/update):**
 ```json
 {
-  "id": "optional-id",
-  "title": "optional title",
   "narration": "Required narration text",
   "view": { "type": "code | slide | terminal | react | video", "..." : "..." },
+  "title": "optional title",
   "timestamp": 0,
   "duration": 5,
   "startTransition": { "type": "fade", "duration": 0.5 },
@@ -60,28 +55,24 @@
 }
 ```
 
-**Reorder body:** `{ "sceneIds": ["scene-1", "scene-2", "scene-3"] }`
-
 ## Code Blocks
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/movies/:movieId/scenes/:sceneId/codeblocks` | List code blocks |
-| POST | `/api/movies/:movieId/scenes/:sceneId/codeblocks` | Create code block |
-| GET | `/api/movies/:movieId/scenes/:sceneId/codeblocks/:blockId` | Get code block |
-| PUT | `/api/movies/:movieId/scenes/:sceneId/codeblocks/:blockId` | Update code block |
-| DELETE | `/api/movies/:movieId/scenes/:sceneId/codeblocks/:blockId` | Delete code block |
+| Tool | Input | Description |
+|------|-------|-------------|
+| `list_codeblocks` | `{ movieId, sceneId }` | List code blocks in a scene |
+| `get_codeblock` | `{ movieId, sceneId, blockId }` | Get a single code block |
+| `create_codeblock` | `{ movieId, sceneId, block }` | Create a code block |
+| `update_codeblock` | `{ movieId, sceneId, blockId, block }` | Update a code block |
+| `delete_codeblock` | `{ movieId, sceneId, blockId }` | Delete a code block |
 
-**Create code block body:**
+**Code block object:**
 ```json
 {
-  "id": "optional-id",
-  "name": "optional label",
-  "parentId": null,
   "filePath": "src/file.ts",
   "lineRanges": [{ "start": 1, "end": 30 }],
   "changeType": "modify",
   "content": "// actual file content for the line ranges",
+  "parentId": null,
   "lineOrder": [1, 2, 3]
 }
 ```

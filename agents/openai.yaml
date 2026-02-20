@@ -1,3 +1,11 @@
 interface:
   display_name: "Merge Movies"
   short_description: "Generate code walkthrough videos from git diffs"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "merge-movies"
+      description: "merge.mov API for creating and managing code walkthrough videos"
+      transport: "streamable_http"
+      url: "https://merge.mov/api/mcp"

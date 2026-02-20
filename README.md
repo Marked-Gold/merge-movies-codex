@@ -11,7 +11,7 @@ $skill-installer install https://github.com/Marked-Gold/merge-movies-codex
 ## Setup
 
 1. Sign up at [merge.mov](https://merge.mov)
-2. Go to [Settings](https://studio.merge.mov/settings) and create an API key
+2. Go to [Settings](https://merge.mov/settings) and create an API key
 3. Set the environment variable:
 
 ```bash
@@ -40,7 +40,7 @@ Find an existing movie by ID or title, then:
 
 The skills teach Codex to create and modify code walkthrough videos by calling the merge.mov REST API. Movies can include code views with syntax highlighting, slide views for title cards and diagrams, terminal demos, and custom React animations.
 
-View your movies at [studio.merge.mov](https://studio.merge.mov).
+View your movies at [merge.mov](https://merge.mov).
 
 ## License
 
