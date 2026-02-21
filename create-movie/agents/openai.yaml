@@ -1,0 +1,12 @@
+interface:
+  display_name: "Merge Movies: Create Movie"
+  short_description: "Create merge.mov walkthrough movies from code and context"
+  default_prompt: "Use $create-movie to create a walkthrough for my latest changes."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "merge-movies"
+      description: "merge.mov MCP server for creating code walkthrough videos"
+      transport: "streamable_http"
+      url: "https://merge.mov/api/mcp"

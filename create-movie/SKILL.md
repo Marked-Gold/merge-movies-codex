@@ -10,6 +10,7 @@ Create code walkthrough movies using the merge.mov MCP tools. Supports multiple 
 ## Setup
 
 The `merge-movies` MCP server must be connected. Authentication is handled via the `MERGE_MOVIES_API_KEY` environment variable passed through the MCP transport.
+This skill folder includes a `.mcp.json` template for the `merge-movies` server; copy it to your active project if `/mcp` does not list the server.
 
 If the key is missing, tell the user to create one at [merge.mov Settings](https://merge.mov/settings).
 
