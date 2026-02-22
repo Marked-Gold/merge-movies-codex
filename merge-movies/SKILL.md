@@ -16,7 +16,7 @@ Movies are built from scenes — each scene has narration and a visual view (cod
 ## Prerequisites
 
 - merge-movies MCP server must be connected via streamable HTTP
-- `MERGE_MOVIES_API_KEY` environment variable must be set
+- Authentication is handled automatically via OAuth (browser login on first use)
 
 ## Required Workflow
 
@@ -24,11 +24,16 @@ Movies are built from scenes — each scene has narration and a visual view (cod
 
 ### Step 0: Set up merge-movies MCP (if not already configured)
 
-If any MCP call fails because the merge-movies server is not connected, pause and set it up:
+If `/mcp` does not list `merge-movies`, or any MCP call fails because the server is not connected, pause and set it up:
 
-1. Add the MCP server — this skill folder includes a `.mcp.json` template; copy it to the active project if `/mcp` does not list the server
-2. Set the API key: `export MERGE_MOVIES_API_KEY="mm_your_key_here"`
-3. If the key is missing, tell the user to create one at [merge.mov Settings](https://merge.mov/settings)
+1. Add the MCP server:
+   ```
+   codex mcp add merge-movies -- npx mcp-remote https://merge.mov/api/mcp
+   ```
+
+2. Restart Codex and run `/mcp` — a browser window will open for you to log in and authorize access.
+
+Authentication is handled automatically via OAuth. No API keys or environment variables needed.
 
 Use `$MERGE_MOVIES_URL` if set, otherwise default to `https://merge.mov`.
 
@@ -255,7 +260,7 @@ delete_codeblock({ movieId: "...", sceneId: "...", blockId: "..." })
 
 ## MCP Tools
 
-All tools are available automatically via the `merge-movies` MCP server. Authentication is handled by the MCP transport via the `MERGE_MOVIES_API_KEY` environment variable.
+All tools are available automatically via the `merge-movies` MCP server. Authentication is handled automatically via OAuth 2.1 (browser login on first use).
 
 ### Movies
 

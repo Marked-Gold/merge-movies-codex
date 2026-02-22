@@ -3,7 +3,7 @@
 **MCP Server:** `merge-movies`
 **Transport:** Streamable HTTP
 **URL:** `https://merge.mov/api/mcp`
-**Auth:** `X-API-Key` header via `MERGE_MOVIES_API_KEY` environment variable
+**Auth:** OAuth 2.1 — authentication handled automatically by MCP transport (browser login on first use)
 **Studio:** `{MERGE_MOVIES_URL}/studio/{movieId}` (viewing URL, use `$MERGE_MOVIES_URL` or default `https://merge.mov`)
 
 ## Movies
