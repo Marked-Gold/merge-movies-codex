@@ -294,6 +294,12 @@ All tools are available automatically via the `merge-movies` MCP server. Authent
 | `update_codeblock` | `{ movieId, sceneId, blockId, block }` | Update a code block |
 | `delete_codeblock` | `{ movieId, sceneId, blockId }` | Delete a code block |
 
+### Videos
+
+| Tool | Input | Description |
+|------|-------|-------------|
+| `create_video_upload` | `{ movieId, filename?, mimeType? }` | Get a presigned URL to upload a video file. Returns `{ presignedUploadUrl, videoSource }` |
+
 ---
 
 ## Scene Types
@@ -515,6 +521,95 @@ For files too long to fit on screen:
 | `fade` | Between distinct topics or for dramatic effect |
 | `slide` | For sequential steps or progression |
 | `zoom` | For drilling into details |
+
+---
+
+## Recording Browser Demos
+
+You can record browser demos using Playwright and include them as VideoView scenes. This is useful for showing UI workflows, bug fixes, or feature demos.
+
+Scripts and videos are persisted in `.merge-movies/demos/` so they can be reviewed, re-run, or debugged.
+
+### Setup
+
+```bash
+npm install playwright 2>/dev/null && npx playwright install chromium --with-deps 2>/dev/null || npx playwright install chromium
+```
+
+### Write the Playwright Script
+
+Choose a descriptive kebab-case name for the demo (e.g., `login-flow`, `search-feature`). Write the script to `.merge-movies/demos/<name>.mjs`:
+
+```javascript
+// .merge-movies/demos/<name>.mjs
+import { chromium } from 'playwright';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const browser = await chromium.launch();
+const context = await browser.newContext({
+  recordVideo: { dir: __dirname, size: { width: 1280, height: 720 } },
+  viewport: { width: 1280, height: 720 },
+});
+const page = await context.newPage();
+
+// Customize: navigate, click, fill forms, etc.
+await page.goto('http://localhost:3000');
+await page.waitForTimeout(2000);
+
+await context.close();
+const videoPath = await page.video().path();
+console.log('VIDEO_PATH:' + videoPath);
+await browser.close();
+```
+
+### Run the Script
+
+```bash
+node .merge-movies/demos/<name>.mjs
+```
+
+Parse the video file path from the `VIDEO_PATH:` line in stdout. The `.webm` file will be saved in `.merge-movies/demos/` alongside the script.
+
+If the script fails, fix the file and re-run — no need to rewrite from scratch.
+
+### Upload and Create Scene
+
+1. Get a presigned upload URL:
+```
+create_video_upload({ movieId: "<movie-id>" })
+```
+
+2. Upload the video:
+```bash
+curl -X PUT "<presignedUploadUrl>" -H "Content-Type: video/webm" --data-binary @<video-path>
+```
+
+3. Create the VideoView scene:
+```
+create_scene({
+  movieId: "<movie-id>",
+  scene: {
+    title: "Demo: <feature>",
+    narration: "<what the video shows>",
+    view: { type: "video", source: "<videoSource>", aspectRatio: 1.778 }
+  }
+})
+```
+
+The script and video remain in `.merge-movies/demos/` for future reference. This folder is gitignored.
+
+**Tips:**
+- Keep demos short (10-30 seconds)
+- Use `page.waitForTimeout(ms)` between actions for pacing
+- Use `page.waitForSelector(selector)` instead of fixed waits when possible
+- **Avoid repeated logins** — use Playwright's `storageState` to save the browser session after the first login and reuse it:
+  ```javascript
+  await context.storageState({ path: '.merge-movies/demos/auth-state.json' });
+  // Later: browser.newContext({ storageState: '.merge-movies/demos/auth-state.json', ... })
+  ```
 
 ---
 
