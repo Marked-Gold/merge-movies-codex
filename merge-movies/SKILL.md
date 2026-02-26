@@ -332,10 +332,19 @@ Display code with syntax highlighting. Always read the source file first to incl
 **Layouts:** `single`, `side-by-side`, `stacked`, `inline-diff`
 
 **Change types:**
-- `modify` — existing file changed (most common, even when showing added lines within an existing file)
+- `modify` — existing file changed. **Content MUST use diff format:** prefix added lines with `+`, removed lines with `-`, and leave context lines unprefixed. At least one line must have a `+` or `-` prefix. Most common type.
 - `add` — brand-new file
 - `delete` — file or code removed
 - `context` — unchanged code shown for reference (use for walkthrough/architecture scenes)
+
+**Diff format example for modify blocks:**
+```json
+{
+  "changeType": "modify",
+  "content": "function login(email, password) {\n  const user = await findUser(email);\n-  if (!user) return null;\n+  if (!user) throw new Error('Not found');\n+  const valid = await verify(password, user.hash);\n+  return generateToken(user);\n}"
+}
+```
+Highlights on diff lines automatically use green/red colors — just specify which lines to highlight.
 
 ### Slide View
 
