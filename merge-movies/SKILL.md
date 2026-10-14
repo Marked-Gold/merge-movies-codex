@@ -202,6 +202,7 @@ Ask the user what they want changed, or infer from context. Common operations:
 - Update code blocks (content, line ranges, highlights)
 - Change view type
 - Update metadata (title, description)
+- Add, tweak, or remove scene effects
 
 #### Make Surgical Updates
 
@@ -255,6 +256,7 @@ delete_codeblock({ movieId: "...", sceneId: "...", blockId: "..." })
 - **Swap view type:** `update_scene` with a completely new view object
 - **Add highlights:** `patch_scene` with full `view.animations` object including new highlights
 - **Update code content:** Read the updated source file, `update_codeblock` with new content and lineRanges
+- **Add/edit/remove effects:** `get_scene`, edit its `effects` array (keep `id`s of effects you keep), then `patch_scene` with the full array — patching `effects` replaces the whole array; `effects: []` removes all. `update_scene` without `effects` clears them.
 
 ---
 
@@ -390,7 +392,7 @@ Animated terminal sessions with command input and output.
 
 ### React View
 
-**Preferred scene type for all visual/explanatory content** — bullet lists, diagrams, architecture flows, feature overviews. The `code` field is the body of a React function component that receives `scope` with: `React`, `useCurrentFrame`, `useVideoConfig`, `spring`, `interpolate`, `AbsoluteFill`, `Sequence`, `Series`, `Img`.
+**Preferred scene type for all visual/explanatory content** — bullet lists, diagrams, architecture flows, feature overviews. The `code` field is the body of a React function component that receives `scope` with: `React`, `useCurrentFrame`, `useVideoConfig`, `spring`, `interpolate`, `AbsoluteFill`, `Sequence`, `Series`, `Img`. Scope also includes `Video`, `Solid` and Remotion effect factories (`blur`, `vignette`, `lightLeak`, `noise`, `scanlines`, `shine`, `starburst`, `glow`, `chromaticAberration`, `zoomBlur`, `duotone`, `pixelate`, `colorCorrection`, `saturation`, `hue`, `tint`, `linearGradientTint`, `barrelDistortion`, `wave`) that work only via the `effects` prop of `Img`/`Video`/`Solid`, e.g. `<Img src={url} effects={[glow({ radius: 24 }), vignette({ amount: 0.5 })]} />`. For whole-scene looks, prefer the scene-level `effects` array (see Effects).
 
 **Animated bullet list:**
 
@@ -534,6 +536,66 @@ For files too long to fit on screen:
 
 ---
 
+## Effects
+
+Optional `effects` array on a scene (max 8, applied in order) layers cinematic visual effects over the view. Each effect: `{ type, params?, startMs?, endMs?, fadeInMs?, fadeOutMs?, enabled?, id? }` — times are ms relative to the scene start (default: whole scene); omitted params use defaults and out-of-range values are clamped (full ranges are in the `create_scene` schema).
+
+```json
+{
+  "title": "Tests Pass",
+  "narration": "With the retry logic in place, the whole suite goes green.",
+  "view": { "type": "terminal", "..." : "..." },
+  "effects": [
+    { "type": "scanlines", "params": { "amount": 0.3 } },
+    { "type": "vignette", "params": { "amount": 0.5 } },
+    { "type": "shine", "params": { "intensity": 0.55 }, "startMs": 3000, "endMs": 5000 }
+  ]
+}
+```
+
+| Type | Look | Key params (default) | Scenes |
+|------|------|----------------------|--------|
+| `lightLeak` | Warm film light leak that blooms and retracts over ~2s. | `intensity` (0.55), `duration` s (2), `hueShift` (0), `seed` (3) | all |
+| `vignette` | Darkens the edges to pull focus toward the center. | `amount` (0.55), `radius` (0.6), `feather` (0.45), `color` (#000000) | all |
+| `filmGrain` | Animated analog film grain. | `amount` (0.35), `animated` (true) | all |
+| `scanlines` | CRT-style horizontal scanlines that slowly scroll. | `amount` (0.35), `spacing` (4), `thickness` (1), `speed` (30) | all |
+| `shine` | A glossy light streak that sweeps across the frame once (~1.2s). | `intensity` (0.6), `duration` s (1.2), `angle` (30), `width` (160) | all |
+| `starburst` | Slowly rotating sunburst rays behind the content. | `intensity` (0.25), `rays` (16), `color` (#f59e0b), `rotationSpeed` (8), `blend` (screen) | all |
+| `gradientTint` | Washes the scene in a two-color gradient. | `amount` (0.45), `startColor` (#7c3aed), `endColor` (#06b6d4), `angle` (135), `blend` (soft-light) | all |
+| `blur` | Gaussian blur of the whole scene. | `radius` (12) | all |
+| `brightness` | Brighten (positive) or darken (negative) the scene. | `amount` (0.15) | all |
+| `contrast` | Increase (>1) or flatten (<1) contrast. | `amount` (1.25) | all |
+| `saturation` | Boost (>1) or mute (<1) colors. | `amount` (1.4) | all |
+| `grayscale` | Removes color. | `amount` (1) | all |
+| `hue` | Rotates every color around the color wheel. | `degrees` (90) | all |
+| `invert` | Inverts colors (turns dark mode into light mode). | `amount` (1) | all |
+| `colorGrade` | Professional color correction: exposure, contrast, temperature, tint, saturation and vibrance in one pass. | `exposure` (0), `contrast` (1.1), `temperature` (0.15), `tint` (0), `saturation` (1.1), `vibrance` (0.2) | video only |
+| `tint` | Tints the footage toward a single color. | `color` (#22d3ee), `amount` (0.35) | video only |
+| `duotone` | Maps shadows and highlights to two colors. | `darkColor` (#1e1b4b), `lightColor` (#f472b6), `threshold` (0.35) | video only |
+| `chromaticAberration` | Splits RGB channels for a glitchy lens fringe. | `amount` (8), `angle` (0) | video only |
+| `zoomBlur` | Radial motion blur rushing toward a point. | `amount` (40), `center` ([0.5, 0.5]) | video only |
+| `glow` | Blooms bright areas with a soft glow. | `intensity` (1), `radius` (24), `threshold` (0.5), `color` (#ffffff) | video only |
+| `pixelate` | Chunky pixel mosaic. | `blockSize` (12) | video only |
+| `crt` | Bulges the image like an old CRT monitor. | `amount` (0.25) | video only |
+
+Presets:
+
+- **Cinematic**: `[{"type":"contrast","params":{"amount":1.12}},{"type":"vignette","params":{"amount":0.5,"radius":0.62,"feather":0.5}},{"type":"filmGrain","params":{"amount":0.22}}]`
+- **Golden Hour**: `[{"type":"lightLeak","params":{"intensity":0.65,"hueShift":0}},{"type":"gradientTint","params":{"amount":0.3,"startColor":"#f97316","endColor":"#fde047","angle":120,"blend":"soft-light"}}]`
+- **Retro CRT**: `[{"type":"scanlines","params":{"amount":0.4,"spacing":4,"thickness":1,"speed":24}},{"type":"filmGrain","params":{"amount":0.25}},{"type":"vignette","params":{"amount":0.6,"radius":0.55,"feather":0.4}}]`
+- **Neon Night**: `[{"type":"saturation","params":{"amount":1.35}},{"type":"gradientTint","params":{"amount":0.5,"startColor":"#7c3aed","endColor":"#06b6d4","angle":135,"blend":"soft-light"}},{"type":"vignette","params":{"amount":0.45}}]`
+- **Flashback**: `[{"type":"grayscale","params":{"amount":1}},{"type":"filmGrain","params":{"amount":0.4}},{"type":"vignette","params":{"amount":0.7}},{"type":"blur","params":{"radius":10},"fadeOutMs":800}]`
+- **Hero Moment**: `[{"type":"starburst","params":{"intensity":0.22,"rays":18,"color":"#f59e0b"}},{"type":"shine","params":{"intensity":0.55}},{"type":"vignette","params":{"amount":0.4}}]`
+
+Guidance:
+- 1-3 effects per scene; keep one consistent baseline look across the movie (e.g. `filmGrain` ~0.2 + `vignette` ~0.5, or the Cinematic preset).
+- Use motion effects (`lightLeak`, `shine`, `starburst`) on openers, reveals and wins — not every scene. `lightLeak`/`shine` play once from `startMs` for their `duration` param; time `startMs` to the beat.
+- `scanlines` suits terminal scenes. Video-only effects are skipped on code/slide/terminal/react scenes.
+- Time effects to the narration with `startMs`/`endMs`; use `fadeInMs`/`fadeOutMs` so filters ease in and out.
+- Don't put heavy `blur`, `invert`, `hue` or strong tints on code the viewer must read.
+
+---
+
 ## Recording Browser Demos
 
 You can record browser demos using Playwright and include them as VideoView scenes. This is useful for showing UI workflows, bug fixes, or feature demos.
@@ -632,6 +694,6 @@ The script and video remain in `.merge-movies/demos/` for future reference. This
 5. **Mix scene types** — alternate between code, react, and terminal views to keep viewers engaged
 6. **Use animations for long files** — scroll through large files instead of cramming
 7. **Time animations to narration** — sync scroll pauses with what you're explaining
-8. **Use transitions** — fade between unrelated scenes, cut between related ones
+8. **Use transitions** — fade between unrelated scenes, cut between related ones; add effects sparingly (a consistent subtle baseline plus a light leak or shine on big moments)
 9. **Use highlights** — draw attention to key lines with colored backgrounds
 10. **Scene ordering** — start with context, introduce the problem, show the solution, demonstrate the result

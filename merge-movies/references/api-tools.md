@@ -51,9 +51,12 @@
   "timestamp": 0,
   "duration": 5,
   "startTransition": { "type": "fade", "duration": 0.5 },
-  "endTransition": { "type": "fade", "duration": 0.3 }
+  "endTransition": { "type": "fade", "duration": 0.3 },
+  "effects": [{ "type": "vignette", "params": { "amount": 0.5 } }, { "type": "lightLeak", "startMs": 0, "endMs": 2500 }]
 }
 ```
+
+`effects` is optional (max 8): `{ type, params?, startMs?, endMs?, fadeInMs?, fadeOutMs?, enabled? }`. On `patch_scene` it replaces the whole array (`[]` removes all). See the Effects section of SKILL.md for the catalog.
 
 ## Code Blocks
 
@@ -132,4 +135,4 @@
 }
 ```
 
-Scope provides: `React`, `useCurrentFrame`, `useVideoConfig`, `spring`, `interpolate`, `Sequence`, `Series`, `AbsoluteFill`, `Img`
+Scope provides: `React`, `useCurrentFrame`, `useVideoConfig`, `spring`, `interpolate`, `Sequence`, `Series`, `AbsoluteFill`, `Img`, `Video`, `Solid`, plus effect factories (`glow`, `vignette`, `lightLeak`, `blur`, ...) for the `effects` prop of `Img`/`Video`/`Solid` — e.g. `<Img src={url} effects={[glow({ radius: 24 }), vignette({ amount: 0.5 })]} />`
